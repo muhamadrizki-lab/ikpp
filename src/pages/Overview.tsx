@@ -27,6 +27,7 @@ export default function Overview({ onNavigate, currentUser }: OverviewProps) {
   const isSuperAdmin = currentUser?.role === "Super Admin" || currentUser?.email?.toLowerCase() === "digital.solution@pancaran-logistic.id";
   const [orders, setOrders] = useState<Order[]>(() => (SINARMAS_POOLING_ORDERS as unknown as Order[]));
   const [executedShipments, setExecutedShipments] = useState<Order[]>(() => (SINARMAS_EXECUTED_SHIPMENTS as unknown as Order[]));
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [dateFilter, setDateFilter] = useState<DateFilterState>({
     startDate: "",
     endDate: "",
@@ -83,6 +84,10 @@ export default function Overview({ onNavigate, currentUser }: OverviewProps) {
         }
       } catch (err) {
         // Silent catch during background syncs
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -278,6 +283,25 @@ export default function Overview({ onNavigate, currentUser }: OverviewProps) {
     { name: "Repo Empty", value: orderStats.repoEmptyCount, color: "#9333EA" }, // purple-600
     { name: "Import", value: orderStats.imporCount, color: "#2563EB" }        // blue-600
   ];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200/80 dark:border-slate-800 shadow-xs transition-colors duration-200">
+        <div className="relative mb-5">
+          <div className="w-14 h-14 border-4 border-blue-100 dark:border-blue-950 border-t-blue-600 dark:border-t-blue-500 rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400">
+            IKPP
+          </div>
+        </div>
+        <h3 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-1">
+          Memuat Data Sinarmas IKPP...
+        </h3>
+        <p className="text-xs text-gray-500 dark:text-slate-400 font-medium animate-pulse">
+          Menyinkronkan 313 Pooling Orders & 1,947 Executed Shipments
+        </p>
+      </div>
+    );
+  }
 
   return (
     <motion.div

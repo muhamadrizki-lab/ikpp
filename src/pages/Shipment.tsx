@@ -13,6 +13,7 @@ import { fetchExecutedShipmentsClient } from "../lib/fetchOrdersClient";
 import { SINARMAS_EXECUTED_SHIPMENTS } from "../data/sinarmasShipmentsData";
 import { mapCSStatus, formatJobOrderCode } from "../lib/statusMapper";
 import { cleanVehiclePlate, cleanDriver } from "../lib/sheetsEngine";
+import { getFreightServiceType } from "../lib/freightLookup";
 import DetailListModal from "../components/DetailListModal";
 
 function CSStatusBadge({ status }: { status?: string }) {
@@ -254,37 +255,22 @@ export default function ShipmentPage() {
     };
   }, []);
 
-  // Helper to identify Repo PDT shipments
-  const isShipmentRepoPdt = (s: Shipment) => {
-    const text = `${s.commercialRoute || ""} ${s.origin || ""} ${s.destination || ""} ${s.notes || ""} ${s.unit || ""} ${s.currentLocation || ""}`.toLowerCase();
-    return (
-      text.includes("pancaran") ||
-      text.includes("0 - 36") ||
-      text.includes("0-36") ||
-      text.includes("pdt") ||
-      text.includes("depo pdt") ||
-      text.includes("depo around priok") ||
-      text.includes("depo arround priok") ||
-      text.includes("pancaran depo") ||
-      text.includes("repo pdt")
-    );
-  };
-
   // Matrix Breakdown calculated dynamically from shipments (filtered by dateFilter)
   const breakdownMatrix = useMemo(() => {
     const types = [
       { key: "ekspor", label: "Export" },
-      { key: "repo_service", label: "Repo Service" },
-      { key: "repo_pdt", label: "Repo PDT" },
+      { key: "repo_full", label: "Repo Full" },
+      { key: "repo_empty", label: "Repo Empty" },
       { key: "impor", label: "Import" }
     ];
 
     return types.map((t) => {
       const typeShipments = dateFilteredShipments.filter((s) => {
-        if (t.key === "ekspor") return (s.type === "ekspor" || s.type === "export") && !isShipmentRepoPdt(s);
-        if (t.key === "impor") return (s.type === "impor" || s.type === "import") && !isShipmentRepoPdt(s);
-        if (t.key === "repo_service") return s.type === "repo" && !isShipmentRepoPdt(s);
-        if (t.key === "repo_pdt") return isShipmentRepoPdt(s);
+        const effType = getFreightServiceType(s);
+        if (t.key === "ekspor") return effType === "EXPORT";
+        if (t.key === "impor") return effType === "IMPORT";
+        if (t.key === "repo_full") return effType === "REPO FULL";
+        if (t.key === "repo_empty") return effType === "REPO EMPTY";
         return false;
       });
       const preTrip = typeShipments.filter((s) => mapCSStatus(s.lastUpdateCS).shipmentStatus === "pre_trip").length;
@@ -335,12 +321,14 @@ export default function ShipmentPage() {
           (shp.tripStatus === "cancel" ||
             (shp.orderStatus || "").toLowerCase().includes("cancel") ||
             (shp.lastUpdateCS || "").toLowerCase().includes("cancel")));
+
+      const effType = getFreightServiceType(shp);
       const matchesType =
         typeFilter === "all" ||
-        ((typeFilter === "ekspor" || typeFilter === "export") && (shp.type === "ekspor" || shp.type === "export") && !isShipmentRepoPdt(shp)) ||
-        ((typeFilter === "impor" || typeFilter === "import") && (shp.type === "impor" || shp.type === "import") && !isShipmentRepoPdt(shp)) ||
-        ((typeFilter === "repo" || typeFilter === "repo_service") && shp.type === "repo" && !isShipmentRepoPdt(shp)) ||
-        (typeFilter === "repo_pdt" && isShipmentRepoPdt(shp));
+        ((typeFilter === "ekspor" || typeFilter === "export") && effType === "EXPORT") ||
+        ((typeFilter === "impor" || typeFilter === "import") && effType === "IMPORT") ||
+        ((typeFilter === "repo_full" || typeFilter === "repo" || typeFilter === "repo_service") && effType === "REPO FULL") ||
+        ((typeFilter === "repo_empty" || typeFilter === "repo_pdt") && effType === "REPO EMPTY");
 
       return matchesSearch && matchesOrderId && matchesCS && matchesTripStatus && matchesType;
     });
@@ -424,7 +412,9 @@ export default function ShipmentPage() {
           <span className="text-xs sm:text-sm font-bold px-2.5 py-1 rounded border bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-slate-200 border-gray-200 dark:border-slate-700">
             {u}
           </span>
-        ) : null;
+        ) : (
+          <span className="text-gray-400 font-medium text-xs sm:text-sm">-</span>
+        );
       }
     },
     {
@@ -437,7 +427,9 @@ export default function ShipmentPage() {
           <span className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-slate-200">
             {d}
           </span>
-        ) : null;
+        ) : (
+          <span className="text-gray-400 font-medium text-xs sm:text-sm">-</span>
+        );
       }
     },
     {
@@ -786,9 +778,9 @@ export default function ShipmentPage() {
                       <span className={`w-3 h-3 rounded-full ${
                         row.type === "Export" || row.type === "Ekspor"
                           ? "bg-sky-500"
-                          : row.type === "Repo Service"
+                          : row.type === "Repo Full" || row.type === "REPO FULL"
                           ? "bg-emerald-500"
-                          : row.type === "Repo PDT"
+                          : row.type === "Repo Empty" || row.type === "REPO EMPTY"
                           ? "bg-purple-600"
                           : "bg-blue-600"
                       }`}></span>
@@ -948,9 +940,9 @@ export default function ShipmentPage() {
                 >
                   <option value="all">Order Type: All</option>
                   <option value="ekspor">Export Only</option>
-                  <option value="repo_service">Repo Service Only</option>
+                  <option value="repo_full">Repo Full Only</option>
+                  <option value="repo_empty">Repo Empty Only</option>
                   <option value="impor">Import Only</option>
-                  <option value="repo_pdt">Repo PDT Only</option>
                 </select>
               </div>
 

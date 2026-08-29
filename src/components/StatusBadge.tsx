@@ -76,14 +76,10 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     displayLabel = "Export";
   } else if (normalized === "impor" || normalized === "import") {
     displayLabel = "Import";
-  } else if (normalized === "repo full" || normalized === "repo_full") {
+  } else if (normalized === "repo full" || normalized === "repo_full" || normalized === "repo" || normalized === "repo service" || normalized === "repo_service") {
     displayLabel = "Repo Full";
-  } else if (normalized === "repo empty" || normalized === "repo_empty") {
+  } else if (normalized === "repo empty" || normalized === "repo_empty" || normalized === "repo pdt" || normalized === "repo_pdt") {
     displayLabel = "Repo Empty";
-  } else if (normalized === "repo" || normalized === "repo service" || normalized === "repo_service") {
-    displayLabel = "Repo Service";
-  } else if (normalized === "repo pdt" || normalized === "repo_pdt") {
-    displayLabel = "Repo PDT";
   }
 
   return (

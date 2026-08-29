@@ -22,7 +22,7 @@ function parseCSVRecords(csvText: string): string[][] {
     if (char === '"') {
       if (inQuotes && nextChar === '"') {
         currentCell += '"';
-        i++; // skip escaped quote
+        i++;
       } else {
         inQuotes = !inQuotes;
       }
@@ -30,9 +30,7 @@ function parseCSVRecords(csvText: string): string[][] {
       currentRecord.push(currentCell.trim());
       currentCell = "";
     } else if ((char === '\r' || char === '\n') && !inQuotes) {
-      if (char === '\r' && nextChar === '\n') {
-        i++; // skip \n
-      }
+      if (char === '\r' && nextChar === '\n') i++;
       currentRecord.push(currentCell.trim());
       if (currentRecord.some((c) => c.length > 0)) {
         records.push(currentRecord);
@@ -362,8 +360,15 @@ function cleanVehiclePlate(val?: string): string {
     upper === "NULL" ||
     upper === "UNMAPPED" ||
     upper === "NO UNIT" ||
+    upper === "NO NOPOL" ||
     upper === "EMPTY" ||
     upper === "UNDEFINED" ||
+    upper.includes("PLB") ||
+    upper.includes("KARAWANG") ||
+    upper.includes("SURABAYA") ||
+    upper.includes("PRIOK") ||
+    upper.includes("SEMARANG") ||
+    upper.includes("JAKARTA") ||
     upper.includes("KOJA") ||
     upper.includes("NPCT") ||
     upper.includes("UTC") ||
@@ -371,6 +376,7 @@ function cleanVehiclePlate(val?: string): string {
     upper.includes("PDT") ||
     upper.includes("PORT") ||
     upper.includes("IKK") ||
+    upper.includes("IKPP") ||
     upper.includes("FULL TRUCKING") ||
     upper.includes("TRUCKING") ||
     upper.includes("SERVICE") ||
@@ -378,7 +384,14 @@ function cleanVehiclePlate(val?: string): string {
     upper.includes("EXP") ||
     upper.includes("IMP") ||
     upper.includes("RUTE") ||
-    upper.includes("CONTAINER")
+    upper.includes("CONTAINER") ||
+    upper.includes("GUDANG") ||
+    upper.includes("DEPO") ||
+    upper.includes("FACTORY") ||
+    upper.includes("MILL") ||
+    upper.includes("POINT") ||
+    upper.includes("ADDRESS") ||
+    upper.includes("LOCATION")
   ) {
     return "";
   }
@@ -411,7 +424,9 @@ function cleanDriver(val?: string): string {
     upper.includes("NPCT") ||
     upper.includes("IKK") ||
     upper.includes("PORT") ||
-    upper.includes("CONTAINER")
+    upper.includes("CONTAINER") ||
+    upper.includes("PLB") ||
+    upper.includes("KARAWANG")
   ) {
     return "";
   }
@@ -699,7 +714,7 @@ function mapSpreadsheetRowToOrder(
 
   const rawDriver = getVal(
     mapping?.driverField,
-    [30, 59, 51],
+    [51, 59],
     "id - driver name",
     "driver name",
     "driver_name",
@@ -711,7 +726,7 @@ function mapSpreadsheetRowToOrder(
 
   const rawVehiclePlate = getVal(
     mapping?.vehiclePlateField,
-    [29, 28, 40, 60, 52],
+    [52, 60],
     "nopol",
     "plat",
     "nopol dedicated",

@@ -25,7 +25,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn("Vercel executed sheet fetch warning:", fetchErr);
     }
 
-    if (executedSheet && Array.isArray(executedSheet.orders) && executedSheet.orders.length >= 1947) {
+    if (executedSheet && Array.isArray(executedSheet.orders) && executedSheet.orders.length >= 1000) {
       const validExecutedOrders = executedSheet.orders.map((ord: any) => {
         let cleanId = (ord.id || "").trim();
         if (!cleanId || cleanId.toUpperCase().includes("JANGAN DI HAPUS")) {
@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
       });
 
-      if (validExecutedOrders.length === 1947) {
+      if (validExecutedOrders.length >= 1000) {
         return res.status(200).json({
           success: true,
           totalExecuted: validExecutedOrders.length,

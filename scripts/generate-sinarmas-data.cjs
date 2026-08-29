@@ -37,6 +37,92 @@ function parseCSVRecords(csvText) {
   return records;
 }
 
+function cleanVehiclePlate(val) {
+  if (!val) return "";
+  const cleaned = val.trim();
+  const upper = cleaned.toUpperCase();
+  if (
+    !upper ||
+    upper === "#N/A" ||
+    upper === "N/A" ||
+    upper === "-" ||
+    upper === "NONE" ||
+    upper === "NULL" ||
+    upper === "UNMAPPED" ||
+    upper === "NO UNIT" ||
+    upper === "NO NOPOL" ||
+    upper === "EMPTY" ||
+    upper === "UNDEFINED" ||
+    upper.includes("PLB") ||
+    upper.includes("KARAWANG") ||
+    upper.includes("SURABAYA") ||
+    upper.includes("PRIOK") ||
+    upper.includes("SEMARANG") ||
+    upper.includes("JAKARTA") ||
+    upper.includes("KOJA") ||
+    upper.includes("NPCT") ||
+    upper.includes("UTC") ||
+    upper.includes("BSA") ||
+    upper.includes("PDT") ||
+    upper.includes("PORT") ||
+    upper.includes("IKK") ||
+    upper.includes("IKPP") ||
+    upper.includes("FULL TRUCKING") ||
+    upper.includes("TRUCKING") ||
+    upper.includes("SERVICE") ||
+    upper.includes("TRAILER") ||
+    upper.includes("EXP") ||
+    upper.includes("IMP") ||
+    upper.includes("RUTE") ||
+    upper.includes("CONTAINER") ||
+    upper.includes("GUDANG") ||
+    upper.includes("DEPO") ||
+    upper.includes("FACTORY") ||
+    upper.includes("MILL") ||
+    upper.includes("POINT") ||
+    upper.includes("ADDRESS") ||
+    upper.includes("LOCATION")
+  ) {
+    return "";
+  }
+  return cleaned;
+}
+
+function cleanDriver(val) {
+  if (!val) return "";
+  const cleaned = val.trim();
+  const upper = cleaned.toUpperCase();
+  if (
+    !upper ||
+    upper === "#N/A" ||
+    upper === "N/A" ||
+    upper === "-" ||
+    upper === "NONE" ||
+    upper === "NULL" ||
+    upper === "UNMAPPED" ||
+    upper === "NO DRIVER" ||
+    upper === "EMPTY" ||
+    upper === "UNDEFINED" ||
+    upper.includes("FULL TRUCKING") ||
+    upper.includes("TRUCKING") ||
+    upper.includes("SERVICE") ||
+    upper.includes("RUTE") ||
+    upper.includes("EXP - IMP") ||
+    upper.includes("EXP") ||
+    upper.includes("IMP") ||
+    upper.includes("KOJA") ||
+    upper.includes("NPCT") ||
+    upper.includes("IKK") ||
+    upper.includes("PORT") ||
+    upper.includes("CONTAINER") ||
+    upper.includes("PLB") ||
+    upper.includes("KARAWANG")
+  ) {
+    return "";
+  }
+  return cleaned;
+}
+
 // 1. POOLING ORDERS (313 rows)
 const poolCsv = fs.readFileSync("pooling.csv", "utf8");
 const poolRecs = parseCSVRecords(poolCsv);
@@ -213,8 +299,8 @@ const shipments = rawExecRows.slice(0, 1947).map((r, idx) => {
   const rfco1 = r[48] || "";
   const rfco2 = r[49] || "";
   const status = r[50] || "Active";
-  const driver = r[51] || "";
-  const vehiclePlate = r[52] || "";
+  const driver = cleanDriver(r[51] || "");
+  const vehiclePlate = cleanVehiclePlate(r[52] || "");
   const gpsUnitPosition = r[55] || "";
   const lastUpdateGPS = r[56] || "";
   const statusCDO = r[57] || "";
